@@ -9,16 +9,60 @@ namespace StudentLib
 {
     public class MajorsController
     {
+        private SqlConnection sqlConn { get; set; }
+        public MajorsController(Connection connection)
+        {
+            sqlConn = connection.SqlConnection;
+        }
+        public int Create(Major major)
+        {
+            var sql = " Insert Major (Code, Description, MinSAT) " +
+                $"Values ('{major.Code}', '{major.Description}', '{major.MinSAT}');";
+            var cmd = new SqlCommand(sql, sqlConn);
+            var rowsAffected = cmd.ExecuteNonQuery();
+            return rowsAffected;
+        }
+        
+        
+        
+        
+        public int Change(Major major)
+        {
+            var sql = " update Major set " +
+                " Code = @Code," +
+                " Description = @Description, " +
+                " MinSAT = @MinSAT " +
+                " Where Id = @Id;";
+            var cmd = new SqlCommand(sql, sqlConn);
+            cmd.Parameters.AddWithValue("@Code", major.Code);
+            cmd.Parameters.AddWithValue("@Description", major.Description);
+            cmd.Parameters.AddWithValue("@MinSAT", major.MinSAT);
+            cmd.Parameters.AddWithValue("@Id", major.Id);
+            var rowsAffected = cmd.ExecuteNonQuery();
+            return rowsAffected;
+        }
+
+
+        public int Delete(int Id)
+        {
+            var major = GetByPk(Id);
+            if(major == null)
+            {
+                throw new Exception("Major not found");
+            }
+            var sql = " Delete major " +
+                $" where Id = {Id};";
+            var cmd = new SqlCommand(sql, sqlConn);
+            var rowsAffected = cmd.ExecuteNonQuery();
+            return rowsAffected;
+        }
+
+
+
+
+
         public List<Major> GetAll()
         {
-            var connStr = "server=localhost\\sqlexpress;database=EdDb;trusted_connection=true;";
-            var sqlConn = new SqlConnection(connStr);
-            sqlConn.Open();
-            
-            if(sqlConn.State != System.Data.ConnectionState.Open)
-            {
-                throw new Exception("Connection failed to open!");
-            }
             var sql = ("Select * from Major;");
             var cmd = new SqlCommand(sql, sqlConn);
             var majors = new List<Major>();
@@ -35,8 +79,40 @@ namespace StudentLib
                 majors.Add(major);
             }
             reader.Close();
-            sqlConn.Close();
+            
             return majors;
+        }
+
+        
+        
+        
+        
+        
+        
+        public Major? GetByPk(int Id)
+        {
+            var sql = $"Select * from Major where Id = @Id;";
+            var cmd = new SqlCommand(sql, sqlConn);
+            cmd.Parameters.AddWithValue("@Id", Id);
+            var reader = cmd.ExecuteReader();
+            if(!reader.HasRows)
+            {
+
+                reader.Close();
+                return null;
+            }
+            reader.Read();
+            var major = new Major()
+            {
+                Id = Convert.ToInt32(reader["Id"]),
+                Code = Convert.ToString(reader["Code"]),
+                Description = Convert.ToString(reader["Description"]),
+                MinSAT = Convert.ToInt32(reader["MinSAT"])
+            };
+
+            reader.Close();
+
+            return major;
         }
     }
 }

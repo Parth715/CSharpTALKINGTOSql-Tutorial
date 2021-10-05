@@ -9,12 +9,53 @@ namespace CSharp_Sql_Tutorial
     {
         static void Main(string[] args)
         {
-            var majorsCtrl = new MajorsController();
-            var majors = majorsCtrl.GetAll();
-            foreach(var major in majors)
+            var connectionString = "server=localhost\\sqlexpress;database=EdDb;trusted_connection=true;";
+            var connection = new Connection(connectionString);
+            connection.Open();
+
+            var majorsCtrl = new MajorsController(connection);
+
+            var newMajor = new Major()
             {
-                Console.WriteLine(major);
+                Id = 0,
+                Code = "UWBW",
+                Description = "Basket Weaving - Underwater",
+                MinSAT = 1590
+            };
+            //var rowsAffected = majorsCtrl.Create(newMajor);
+            //if (rowsAffected != 1)
+            //{
+            //    Console.WriteLine("Create failed");
+            //}
+
+
+            var major = majorsCtrl.GetByPk(1);
+            Console.WriteLine(major);
+
+            
+            major.Description = "created by Parth";
+            var rowsAffected = majorsCtrl.Change(major);
+            if (rowsAffected != 1)
+            {
+                Console.WriteLine("Change failed");
             }
+            
+        
+
+            var majors = majorsCtrl.GetAll();
+            foreach (var maj in majors)
+            {
+                Console.WriteLine(maj);
+            }
+            //rowsAffected = majorsCtrl.Delete(major.Id);
+            if (rowsAffected != 1)
+            {
+                Console.WriteLine("Delete failed");
+            }
+       
+
+
+            connection.Close();
         }
         static void X() { 
             var connStr = "server=localhost\\sqlexpress;database=EdDb;trusted_connection=true;";
@@ -56,3 +97,5 @@ namespace CSharp_Sql_Tutorial
         }
     }
 }
+
+
